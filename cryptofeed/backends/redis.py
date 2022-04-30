@@ -48,7 +48,7 @@ class RedisZSetCallback(RedisCallback):
             async with self.read_queue() as updates:
                 async with conn.pipeline(transaction=False) as pipe:
                     for update in updates:
-                        pipe = pipe.zadd(f"{self.key}-{update['exchange']}-{update['symbol']}", {json.dumps(update): update[self.score_key]}, nx=True)
+                        pipe = pipe.hset(f"{update['exchange']}", mapping={'bids':json.dumps(update['book']['bid']),'asks':json.dumps(update['book']['ask']),'ts':update['timestamp'], 'ts_receipt':update['receipt_timestamp']})
                     await pipe.execute()
 
         await conn.close()
